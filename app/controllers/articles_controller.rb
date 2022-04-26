@@ -1,9 +1,11 @@
 class ArticlesController < ApplicationController
 
-    #before_action :set_article, only[:show, :edit, :update, :destroy]
+    before_action :set_article, only: [:show, :edit, :update, :destroy]
+    before_action :require_user, except: [:show, :index]
+    before_action :require_same_user, only: [:edit, :update, :destroy]
 
     def show
-        @article = Article.find(params[:id])
+        #@article = Article.find(params[:id])
     end
 
     def index
@@ -15,13 +17,13 @@ class ArticlesController < ApplicationController
     end
 
     def edit
-        @article = Article.find(params[:id])
+        #@article = Article.find(params[:id])
     end
 
     def create
         #render plain: params[:article]
         @article = Article.new(article_params)
-        @article.user = User.first
+        @article.user = current_user
         if @article.save
             #redirect_to article_path(@article)
             flash[:notice] = "Article was successfully created!"
@@ -32,7 +34,7 @@ class ArticlesController < ApplicationController
     end
 
     def update
-        @article = Article.find(params[:id])
+        #@article = Article.find(params[:id])
         if @article.update(article_params)
             flash[:notice] = "Article was successfully edited."
             redirect_to @article
@@ -42,7 +44,7 @@ class ArticlesController < ApplicationController
     end
 
     def destroy
-        @article = Article.find(params[:id])
+        #@article = Article.find(params[:id])
         @article.destroy
         redirect_to articles_path
     end
@@ -55,6 +57,13 @@ class ArticlesController < ApplicationController
 
     def article_params
         params.require(:article).permit(:title, :description)   
+    end
+
+    def require_same_user
+        unless current_user == @article.user
+            flash[:notice] = "You cannot edit other users' articles."
+            redirect_to @article
+        end
     end
 
 end
